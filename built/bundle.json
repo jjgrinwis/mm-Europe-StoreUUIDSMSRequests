@@ -1,1 +1,0 @@
-{"edgeworker-version":"1.1.15","description":"store SMS requests in a collection via MM","config": {"subrequest": {"invoke-for-edgeworker-clients": true}} }
