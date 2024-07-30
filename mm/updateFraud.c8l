@@ -1,0 +1,12 @@
+// with the UPSERT operation we can conditionally update a collection
+// OLD will contain the current document if it exists.
+// if it doesn't exist, run the insert fraud to an empty array
+// it id does exists, run the update command and add data to array.
+UPSERT { _key: @key }
+    INSERT { _key: @key, fraudHits: PUSH([], @fraud), fraudster: false }
+    UPDATE {fraudHits: PUSH(OLD.fraudHits, @fraud)} 
+    IN UserSMSCalls
+
+// let's return the applied operation, either an insert or an update.
+LET opType = IS_NULL(OLD) ? "insert" : "update"
+RETURN { _key: NEW._key, type: opType }
