@@ -1,12 +1,16 @@
-// with the UPSERT operation we can conditionally update a collection
-// OLD will contain the current document if it exists.
-// if it doesn't exist, run the insert fraud to an empty array
-// it id does exists, run the update command and add data to array.
-UPSERT { _key: @key }
-    INSERT { _key: @key, fraudHits: PUSH([], @fraud), fraudster: false }
-    UPDATE {fraudHits: PUSH(OLD.fraudHits, @fraud)} 
-    IN UserSMSCalls
+// Let's lookup a fraudster based on a mobile number (user_id)
+// We're going to get fraudster state of all users with have a match
+// This way we can also detect if this mobile has been used before for fraudulant actions.
+// To optimize the lookup we should create an index of the user_id
+LET fraudster = (
+    FOR i in UserSMSCalls
+        FILTER @user_id IN i.fraudHits[*].user_id
+        RETURN i.fraudster
+    )
 
-// let's return the applied operation, either an insert or an update.
-LET opType = IS_NULL(OLD) ? "insert" : "update"
-RETURN { _key: NEW._key, type: opType }
+// if there is any hit, our fraudster array should contain a true value
+// check if it exists so we can flag it as a fraudster
+LET result = POSITION(fraudster, true ) ? true : false
+
+// now just provider our fraudster state for this user_id
+RETURN {"fraudster": result}

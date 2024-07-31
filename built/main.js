@@ -21,6 +21,7 @@ export async function responseProvider(request) {
     let body = await request.json().catch(() => null);
     let result = {};
     let status = 200;
+    logger.log(body["url_path"]);
     // let's check if all the required elements are available in the body
     // And we're only interested in SMS messages
     if (body["user_id"] &&
